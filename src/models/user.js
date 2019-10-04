@@ -188,6 +188,9 @@ userSchema.statics.updateUser = async (reqUpdateUserData) => {
     if (!user) {
         throw new Error(`User with employeeCode : ${reqUpdateUserData.employeeCode} not found`)
     }
+    if(reqUpdateUserData.password == ''){
+        reqUpdateUserData.password = user.password
+    }
     const updates = Object.keys(reqUpdateUserData)
     //ToDo- Update Validation Not  working 
     // const allowedUpdates = ['employeeCode', 'firstName']
