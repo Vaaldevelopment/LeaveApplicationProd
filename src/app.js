@@ -10,6 +10,7 @@ const managerRouter = require('./routers/manager')
 const departmentRouter = require('./routers/department')
 const defaultLeaveRouter = require('./routers/defaultLeave')
 const attendanceRouter = require('./routers/attendance')
+const notificationRouter = require('./routers/notification')
 
 const app = express()
 
@@ -24,7 +25,6 @@ app.use(function (req, res, next) {
    res.header("Access-Control-Allow-Origin", "*");
    res.header('Access-Control-Allow-Methods', 'DELETE, PUT,POST,GET');
    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-   res.setHeader('Last-Modified', (new Date()).toUTCString());
    next();
 });
 app.use(cors());
@@ -38,18 +38,17 @@ app.use(express.urlencoded({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: false }));
 app.use(bodyParser.json({ limit: '16mb' }));
 // Angular DIST output folder
-
 app.use(express.static(path.join(__dirname, '../dist')));
 //app.use(express.static(path.join(__dirname, 'src')));
 
 // API location
-//app.use('../API', api);
+//app.use('/api', api);
 
 // Send all other requests to the Angular app
-app.get('/', (req, res) => {
-    //res.sendFile(path.join(__dirname, 'index.html'));
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
-});
+// app.get('*', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'index.html'));
+//res.sendFile(path.join(__dirname, '../dist/index.html'));
+// });
 
 //Set Port
 const port = process.env.PORT
@@ -67,8 +66,7 @@ app.use(managerRouter)
 app.use(departmentRouter)
 app.use(defaultLeaveRouter)
 app.use(attendanceRouter)
-
-
+app.use(notificationRouter)
 module.exports = app
 
 //ToDo - All responses should be in standard format {error: error, data: data}

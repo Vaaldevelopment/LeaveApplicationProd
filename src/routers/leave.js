@@ -3,6 +3,7 @@ const User = require('../models/user')
 const Leave = require('../models/leave')
 const auth = require('../middleware/auth')
 const Holiday = require('../models/holiday')
+const Notification = require('../models/notification')
 const router = new express.Router()
 const currentyear = new Date().getFullYear()
 
@@ -14,7 +15,7 @@ router.get('/user/leave/list', auth, async (req, res) => {
         }).sort({ fromDate: 1 })
 
         for (var i = 0; i < leaveList.length; i++) {
-            const calLeaveSpanArray = await Leave.checkLeaveBalance(leaveList[i].fromDate, leaveList[i].toDate, leaveList[i]._id)
+            const calLeaveSpanArray = await Leave.checkLeaveBalance(leaveList[i].fromDate, leaveList[i].toDate, leaveList[i]._id, leaveList[i].fromSpan, leaveList[i].toSpan)
             leaveList[i].leaveCount = calLeaveSpanArray[0]
         }
 
@@ -26,9 +27,10 @@ router.get('/user/leave/list', auth, async (req, res) => {
 })
 
 router.post('/user/leave/checkLeaveSpan', auth, async (req, res) => {
+    
     try {
-        await Leave.checkLeaveData(req.body.fromDate, req.body.toDate, req.body.reason, req.user._id)
-        const leaveSpan = await Leave.checkLeaveBalance(req.body.fromDate, req.body.toDate, req.user._id)
+        await Leave.checkLeaveData(req.body.fromDate, req.body.toDate, req.body.reason, req.user._id, req.body.fromSpan, req.body.toSpan)
+        const leaveSpan = await Leave.checkLeaveBalance(req.body.fromDate, req.body.toDate, req.user._id, req.body.fromSpan, req.body.toSpan)
 
         res.status(201).send({ 'leaveSpan': leaveSpan })
 
@@ -38,6 +40,17 @@ router.post('/user/leave/checkLeaveSpan', auth, async (req, res) => {
     }
 })
 
+// router.post('/user/leave/leaveSpanCount', auth, async (req, res) => {
+//     try{
+//         const leaveSpan = await Leave.checkLeaveBalance(req.body.fromDate, req.body.toDate, req.user._id)
+
+//         res.status(201).send({ 'leaveSpan': leaveSpan })
+//     } catch (e) {
+//         res.status(400).send(e.message)
+
+//     }
+// })
+
 router.post('/user/leave/calculateTotalLeaveBalance', auth, async (req, res) => {
     try {
         const calTotalLeaveBalance = await Leave.calculateLeaveBalance(req.user._id)
@@ -45,7 +58,7 @@ router.post('/user/leave/calculateTotalLeaveBalance', auth, async (req, res) => 
         const consumeCL = calTotalLeaveBalance[1]
         const consumeEL = calTotalLeaveBalance[2]
         const totalFutureLeave = calTotalLeaveBalance[3]
-        res.status(201).send({ 'calTotalLeaveBalance': totalLeaveBalance, 'consumeCL': consumeCL, 'consumeEL': consumeEL, 'totalFutureLeave': totalFutureLeave  })
+        res.status(201).send({ 'calTotalLeaveBalance': totalLeaveBalance, 'consumeCL': consumeCL, 'consumeEL': consumeEL, 'totalFutureLeave': totalFutureLeave })
 
     } catch (e) {
         res.status(400).send(e.message)
@@ -64,7 +77,7 @@ router.post('/user/leave/checkHoliday', auth, async (req, res) => {
         if (checktoDateHoliday) {
             throw new Error(`Can not apply leave, To date ${checktoDateHoliday.date} is holiday`)
         }
-        const leaveSpan = await Leave.calLeaveSpan(req.body.fromDate, req.body.toDate)
+        const leaveSpan = await Leave.calLeaveSpan(req.body.fromDate, req.body.toDate, req.body.fromSpan, req.body.toSpan)
         res.status(201).send({ 'leaveSpan': leaveSpan })
     } catch (e) {
         res.status(400).send(e.message)
@@ -72,11 +85,11 @@ router.post('/user/leave/checkHoliday', auth, async (req, res) => {
 })
 router.post('/user/leave/apply', auth, async (req, res) => {
     try {
-        await Leave.checkLeaveData(req.body.fromDate, req.body.toDate, req.body.reason, req.user._id)
+        await Leave.checkLeaveData(req.body.fromDate, req.body.toDate, req.body.reason, req.user._id, req.body.fromSpan, req.body.toSpan)
         const leaveSpan = await Leave.checkLeaveBalance(req.body.fromDate, req.body.toDate, req.user._id)
         //  Check leave balance is suficient or not 
+        const userData = await User.findOne({ _id: req.user._id })
         const leaveAppData = new Leave(req.body)
-
         leaveAppData.leavePlanned = true
         if (new Date(req.body.fromDate) < new Date() && new Date(req.body.toDate) < new Date()) {
             leaveAppData.leaveStatus = 'Taken'
@@ -86,7 +99,15 @@ router.post('/user/leave/apply', auth, async (req, res) => {
         leaveAppData.employeeId = req.user._id
         leaveAppData.leaveCount = undefined
         leaveAppData.managerNote = undefined
-        await leaveAppData.save()
+        await leaveAppData.save(function(err, addedLeave) {
+            if (err) throw err;
+            const notification = new Notification()
+            notification.leaveId = addedLeave._id
+            notification.fromId = req.user._id
+            notification.toId = userData.managerEmployeeCode
+            notification.notificationStatus = 'Applied for leave'
+            notification.save()
+          });
         res.status(201).send({ 'Data': leaveAppData })
     } catch (e) {
         res.status(400).send(e.message)
@@ -115,11 +136,10 @@ router.post('/user/leave/update', auth, async (req, res) => {
         }
         previousLeaveData = leaveApp // Object.assign({}, leaveApp)
         await leaveApp.remove()
-
-        await Leave.checkLeaveData(req.body.fromDate, req.body.toDate, req.body.reason, req.user._id)
+        await Leave.checkLeaveData(req.body.fromDate, req.body.toDate, req.body.reason, req.user._id, req.body.fromSpan, req.body.toSpan)
         await Leave.checkLeaveBalance(req.body.fromDate, req.body.toDate, req.user._id)
+        const userData = await User.findOne({ _id: req.user._id })
         const upLeaveApp = new Leave(req.body)
-
         upLeaveApp.leavePlanned = true
         if (new Date(req.body.fromDate) < new Date() && new Date(req.body.toDate) < new Date()) {
             upLeaveApp.leaveStatus = 'Taken'
@@ -129,7 +149,15 @@ router.post('/user/leave/update', auth, async (req, res) => {
         upLeaveApp.employeeId = req.user._id
         upLeaveApp.leaveCount = undefined
         upLeaveApp.managerNote = undefined
-        await upLeaveApp.save()
+        await upLeaveApp.save(function(err, updatedLeave) {
+            if (err) throw err;
+            const notification = new Notification()
+            notification.leaveId = updatedLeave._id
+            notification.fromId = req.user._id
+            notification.toId = userData.managerEmployeeCode
+            notification.notificationStatus = 'Updated leave'
+            notification.save()
+          });
         res.status(201).send({ 'Data': upLeaveApp })
 
     } catch (e) {
@@ -182,6 +210,16 @@ router.delete('/user/leave/delete', auth, async (req, res) => {
         await leaveApp.remove()
         res.send({ status: ` ${queryId} Deleted successfully` })
 
+    } catch (e) {
+        res.status(400).send(e.message)
+    }
+})
+
+router.post('/user/leave/datesOfLeave', auth, async (req, res) => {
+    try {
+        var leaveSpan = await Leave.checkLeaveBalance(req.body.fromDate, req.body.toDate, req.user._id)
+        const leaveDates = await Leave.datesOfLeave(req.body.fromDate, req.body.toDate, leaveSpan);
+        res.status(200).send({ 'leaveDates': leaveDates })
     } catch (e) {
         res.status(400).send(e.message)
     }
