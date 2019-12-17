@@ -44,11 +44,10 @@ router.post('/users/logout', auth, async (req, res) => {
 
 //call only admin
 router.post('/users/logoutall', auth, async (req, res) => {
-
     try {
         req.user.tokens = []
         await req.user.save()
-        res.send()
+        res.send('Logout')
     } catch (e) {
         res.status(500).send(e.message)
     }
