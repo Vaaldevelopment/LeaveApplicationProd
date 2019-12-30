@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const app = require('../src/app')
 const User = require('../src/models/user')
+const today = new Date()
+const currentYear = today.getFullYear()
+
 
 const userId = new mongoose.Types.ObjectId()
 const user = {
@@ -16,9 +19,7 @@ const user = {
     isHR: true,
     department: 'Marketing',
     employeeStatus: 'Permanent',
-    dateOfJoining: '2020-06-27T06:17:07.654Z',
-    EL: 20,
-    CL: 2,
+    dateOfJoining: currentYear + '-06-27T06:17:07.654Z',
     tokens: [{
         token: jwt.sign({ _id: userId }, process.env.JWT_SECRETKEY)
     }]
@@ -34,14 +35,31 @@ const newUser = {
     isHR: true,
     department: 'Marketing',
     employeeStatus: 'Permanent',
-    dateOfJoining: '2020-06-27T06:17:07.654Z',
-    EL: 20,
-    CL: 2
+    dateOfJoining: currentYear + '-06-27T06:17:07.654Z',
+}
+
+const anotherUserId = new mongoose.Types.ObjectId()
+const anotherUser = {
+    _id: anotherUserId,
+    employeeCode: 'VT_003',
+    firstName: 'firstName',
+    lastName: 'Lastname',
+    password: 'Pass123',
+    email: 'another@gmail.com',
+    managerEmployeeCode: 'VT100',
+    isHR: false,
+    department: 'Marketing',
+    employeeStatus: 'Permanent',
+    dateOfJoining: currentYear + '-06-27T06:17:07.654Z',
+    tokens: [{
+        token: jwt.sign({ _id: anotherUserId }, process.env.JWT_SECRETKEY)
+    }]
 }
 
 beforeEach(async () => {
     await User.deleteMany()
     await new User(user).save()
+    await new User(anotherUser).save()
 })
 
 
@@ -49,6 +67,30 @@ test('Login existing user', async () => {
     const response = await request(app).post('/users/login').send({
         email: user.email,
         password: user.password
+    }).expect(200)
+    const existingUser = await User.findById(userId)
+    expect(response.body.token).toBe(existingUser.tokens[1].token)
+})
+
+test('Login as user, HR', async () => {
+    const response = await request(app).post(`/users/login?requestedBy=${userId}`).send({
+        email: user.email,
+    }).expect(200)
+    const existingUser = await User.findById(userId)
+    expect(response.body.token).toBe(existingUser.tokens[1].token)
+})
+
+test('Login as user, not HR', async () => {
+    const response = await request(app).post(`/users/login?requestedBy=${anotherUserId}`).send({
+        email: user.email,
+    }).expect(401)
+    // const existingUser = await User.findById(userId)
+    // expect(response.body.token).toBe(existingUser.tokens[1].token)
+})
+
+test('Login as user throught HR', async () => {
+    const response = await request(app).post(`/users/login?requestedBy=${userId}`).send({
+        email: user.email,
     }).expect(200)
     const existingUser = await User.findById(userId)
     expect(response.body.token).toBe(existingUser.tokens[1].token)

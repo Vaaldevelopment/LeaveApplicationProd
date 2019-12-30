@@ -4,6 +4,8 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 const app = require('../src/app')
 const User = require('../src/models/user')
+const today = new Date()
+const currentYear = today.getFullYear()
 
 const hrId = new mongoose.Types.ObjectId()
 const hrUser = {
@@ -17,7 +19,7 @@ const hrUser = {
     isHR: true,
     department: 'HR',
     employeeStatus: 'Permanent',
-    dateOfJoining: '2020-06-27T06:17:07.654Z',
+    dateOfJoining: currentYear + '-06-27T06:17:07.654Z',
     tokens: [{
         token: jwt.sign({ _id: hrId }, process.env.JWT_SECRETKEY)
     }]
@@ -35,13 +37,15 @@ const nHrUser = {
     isHR: false,
     department: 'Admin',
     employeeStatus: 'Permanent',
-    dateOfJoining: '2020-06-27T06:17:07.654Z',
+    dateOfJoining: currentYear + '-06-27T06:17:07.654Z',
     tokens: [{
         token: jwt.sign({ _id: nHrId }, process.env.JWT_SECRETKEY)
     }]
 }
 
+const newUserId = new mongoose.Types.ObjectId()
 const newUser = {
+    _id: newUserId,
     employeeCode: 'VT_002',
     firstName: 'Sonali',
     lastName: 'Konge',
@@ -51,7 +55,7 @@ const newUser = {
     isHR: true,
     department: 'Marketing',
     employeeStatus: 'Permanent',
-    dateOfJoining: '2020-06-27T06:17:07.654Z'
+    dateOfJoining: currentYear + '-06-27T06:17:07.654Z'
 }
 
 
@@ -94,7 +98,7 @@ test('Should not add new user without required information', async () => {
         isHR: true,
         department: 'Marketing',
         employeeStatus: 'Permanent',
-        dateOfJoining: '2020-06-27T06:17:07.654Z'
+        dateOfJoining: currentYear + '-06-27T06:17:07.654Z'
     }
     const response = await request(app).post('/hr/user/create')
         .set('Authorization', `Bearer ${hrUser.tokens[0].token}`)
@@ -114,7 +118,7 @@ test('Should not add new user if does not meet policy requirments', async () => 
         isHR: true,
         department: 'Marketing',
         employeeStatus: 'Permanent',
-        dateOfJoining: '2020-06-27T06:17:07.654Z'
+        dateOfJoining: currentYear + '-06-27T06:17:07.654Z'
     }
     const response = await request(app).post('/hr/user/create')
         .set('Authorization', `Bearer ${hrUser.tokens[0].token}`)
@@ -129,6 +133,7 @@ test('Should not add new user if does not meet policy requirments', async () => 
 test('Update existing user', async () => {
     await new User(newUser).save()
     const modifiedUser = {
+        _id: newUser._id,
         employeeCode: newUser.employeeCode,
         firstName: 'UpFirstName',
         lastName: 'UpLastName',
@@ -137,7 +142,7 @@ test('Update existing user', async () => {
         managerEmployeeCode: 'VT101',
         department: 'Marketing',
         employeeStatus: 'Permenant',
-        dateOfJoining: '2020-06-27T06:17:07.654Z'
+        dateOfJoining: currentYear + '-06-27T06:17:07.654Z'
     }
     const response = await request(app).patch('/hr/user/update')
         .set('Authorization', `Bearer ${hrUser.tokens[0].token}`)
@@ -262,7 +267,7 @@ test('Should not get all employee list if user is not HR', async () => {
         isHR: false,
         department: 'Admin',
         employeeStatus: 'Permanent',
-        dateOfJoining: '2020-06-27T06:17:07.654Z',
+        dateOfJoining: currentYear + '-06-27T06:17:07.654Z',
         tokens: [{
             token: jwt.sign({ _id: nHrId }, process.env.JWT_SECRETKEY)
         }]
@@ -274,16 +279,16 @@ test('Should not get all employee list if user is not HR', async () => {
         .expect(400)
 })
 
-test('Check EmpCode should not duplicate', async() =>{
+test('Check EmpCode should not duplicate', async () => {
     const response = await request(app).get('/hr/user/checkDuplicateEmpCode?employeeCode=VT_050')
-    .set('Authorization', `Bearer ${hrUser.tokens[0].token}`)
-    .send()
-    .expect(200)
+        .set('Authorization', `Bearer ${hrUser.tokens[0].token}`)
+        .send()
+        .expect(200)
 })
 
-test('Check EmpCode is duplicate', async() =>{
+test('Check EmpCode is duplicate', async () => {
     const response = await request(app).get('/hr/user/checkDuplicateEmpCode?employeeCode=VT_005')
-    .set('Authorization', `Bearer ${hrUser.tokens[0].token}`)
-    .send()
-    .expect(400)
+        .set('Authorization', `Bearer ${hrUser.tokens[0].token}`)
+        .send()
+        .expect(400)
 })

@@ -11,9 +11,8 @@ router.get('/user/leave/list', auth, async (req, res) => {
     try {
         const leaveList = await Leave.find({
             employeeId: req.user._id,
-            $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
-        }).sort({ fromDate: 1 })
-
+            // $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
+        }).sort({ fromDate: -1 })
         for (var i = 0; i < leaveList.length; i++) {
             const calLeaveSpanArray = await Leave.checkLeaveBalance(leaveList[i].fromDate, leaveList[i].toDate, leaveList[i]._id, leaveList[i].fromSpan, leaveList[i].toSpan)
             leaveList[i].leaveCount = calLeaveSpanArray[0]
@@ -58,7 +57,8 @@ router.post('/user/leave/calculateTotalLeaveBalance', auth, async (req, res) => 
         const consumeCL = calTotalLeaveBalance[1]
         const consumeEL = calTotalLeaveBalance[2]
         const totalFutureLeave = calTotalLeaveBalance[3]
-        res.status(201).send({ 'calTotalLeaveBalance': totalLeaveBalance, 'consumeCL': consumeCL, 'consumeEL': consumeEL, 'totalFutureLeave': totalFutureLeave })
+        const compOffLeave = calTotalLeaveBalance[5]
+        res.status(201).send({ 'calTotalLeaveBalance': totalLeaveBalance, 'consumeCL': consumeCL, 'consumeEL': consumeEL, 'totalFutureLeave': totalFutureLeave, 'compOffLeave': compOffLeave })
 
     } catch (e) {
         res.status(400).send(e.message)
@@ -91,10 +91,10 @@ router.post('/user/leave/apply', auth, async (req, res) => {
         const userData = await User.findOne({ _id: req.user._id })
         const leaveAppData = new Leave(req.body)
         leaveAppData.leavePlanned = true
-        if (new Date(req.body.fromDate) < new Date() && new Date(req.body.toDate) < new Date()) {
-            leaveAppData.leaveStatus = 'Taken'
-            leaveAppData.leavePlanned = false
-        }
+        // if (new Date(req.body.fromDate) < new Date() && new Date(req.body.toDate) < new Date()) {
+        //     leaveAppData.leaveStatus = 'Taken'
+        //     leaveAppData.leavePlanned = false
+        // }
         leaveAppData.leaveType = 'EL'
         leaveAppData.employeeId = req.user._id
         leaveAppData.leaveCount = undefined
@@ -131,7 +131,7 @@ router.post('/user/leave/update', auth, async (req, res) => {
         if (!leaveApp) {
             throw new Error(`Leave application of id : ${queryId} not found`)
         }
-        if (leaveApp.leaveStatus == 'Approved' || leaveApp.leaveStatus == 'Rejected' || leaveApp.leaveStatus == 'Cancelled' || leaveApp.leaveStatus == 'Taken') {
+        if (leaveApp.leaveStatus == 'Approved' || leaveApp.leaveStatus == 'Rejected' || leaveApp.leaveStatus == 'Cancelled' || leaveApp.leaveStatus == 'Rejected Taken' || leaveApp.leaveStatus == 'Approved Taken') {
             throw new Error(`Can not update Approved/Rejected/Cancelled/Taken leave application`)
         }
         previousLeaveData = leaveApp // Object.assign({}, leaveApp)
@@ -141,10 +141,10 @@ router.post('/user/leave/update', auth, async (req, res) => {
         const userData = await User.findOne({ _id: req.user._id })
         const upLeaveApp = new Leave(req.body)
         upLeaveApp.leavePlanned = true
-        if (new Date(req.body.fromDate) < new Date() && new Date(req.body.toDate) < new Date()) {
-            upLeaveApp.leaveStatus = 'Taken'
-            upLeaveApp.leavePlanned = false
-        }
+        // if (new Date(req.body.fromDate) < new Date() && new Date(req.body.toDate) < new Date()) {
+        //     upLeaveApp.leaveStatus = 'Taken'
+        //     upLeaveApp.leavePlanned = false
+        // }
         upLeaveApp.leaveType = 'EL'
         upLeaveApp.employeeId = req.user._id
         upLeaveApp.leaveCount = undefined
@@ -203,7 +203,7 @@ router.delete('/user/leave/delete', auth, async (req, res) => {
         if (!leaveApp) {
             throw new Error(`Leave application of id : ${queryId} not found`)
         }
-        if (leaveApp.leaveStatus == 'Approved' || leaveApp.leaveStatus == 'Rejected' || leaveApp.leaveStatus == 'Cancelled' || leaveApp.leaveStatus == 'Taken') {
+        if (leaveApp.leaveStatus == 'Approved' || leaveApp.leaveStatus == 'Rejected' || leaveApp.leaveStatus == 'Cancelled' || leaveApp.leaveStatus == 'Rejected Taken' || leaveApp.leaveStatus == 'Approved Taken') {
             throw new Error(`Can not update Approved/Rejected/Cancelled/Taken leave application`)
         }
 

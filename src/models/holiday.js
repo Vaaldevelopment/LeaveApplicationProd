@@ -68,8 +68,9 @@ holidaySchema.statics.updateHoliday = async (reqUpdateHolidayData) => {
 }
 
 holidaySchema.statics.deleteHoliday = async (reqDeleteHolidayData) => {
-    const existingHoliday = await Holiday.findOne({ date: reqDeleteHolidayData, "$expr": { "$eq": [{ "$year": "$date" }, currentyear] } })
 
+    const existingHoliday = await Holiday.findOne({ date: reqDeleteHolidayData })
+//"$expr": { "$eq": [{ "$year": "$date" }, currentyear] }
     if (!existingHoliday) {
         throw new Error(`Holiday does not exist for date ${reqDeleteHolidayData}`)
     }

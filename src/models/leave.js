@@ -3,6 +3,7 @@ const validator = require('validator');
 const Holiday = require('../models/holiday')
 const User = require('../models/user')
 const LeaveData = require('../models/leavedata')
+const CompensationOff = require('../models/compensationoff')
 const currentyear = new Date().getFullYear()
 const today = new Date()
 
@@ -27,7 +28,8 @@ const leaveSchema = new mongoose.Schema({
     },
     leaveType: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     leavePlanned: {
         type: Boolean,
@@ -35,7 +37,8 @@ const leaveSchema = new mongoose.Schema({
     },
     leaveStatus: {
         type: String,
-        default: 'Pending'
+        default: 'Pending',
+        trim: true
     },
     managerNote: {
         type: String,
@@ -46,11 +49,17 @@ const leaveSchema = new mongoose.Schema({
     },
     fromSpan: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     toSpan: {
         type: String,
-        required: true
+        required: true,
+        trim: true
+    },
+    requestedBy: {
+        type: String,
+        trim: true
     }
 }, {
     timestamps: true
@@ -113,7 +122,7 @@ leaveSchema.statics.checkLeaveData = async (fromDate, toDate, reason, employeeId
 
     const leaveList = await Leave.find({
         employeeId: employeeId,
-        $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
+        $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, fromDateYear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, toDateYear] } }]
     })
 
     if (leaveList.length != 0) {
@@ -191,9 +200,8 @@ leaveSchema.statics.checkConnectingFromDates = async (formDate, employeeId) => {
 
     } while (ConnectingFromDatesLeaveFlag)
 
-
     let connectingLeavefromDate = await Leave.findOne({
-        employeeId: employeeId, toDate: previousDate, leaveStatus: { $in: ['Approved', 'Taken', 'Pending'] },
+        employeeId: employeeId, toDate: previousDate, leaveStatus: { $in: ['Approved', 'Rejected Taken', 'Approved Taken', 'Pending'] },
         $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
     })
     if (connectingLeavefromDate) {
@@ -224,7 +232,7 @@ leaveSchema.statics.checkConnectingToDates = async (toDate, employeeId) => {
     } while (ConnectingToDatesLeaveFlag)
 
     let connectingLeaveToDate = await Leave.findOne({
-        employeeId: employeeId, fromDate: nextDate, leaveStatus: { $in: ['Approved', 'Taken', 'Pending'] },
+        employeeId: employeeId, fromDate: nextDate, leaveStatus: { $in: ['Approved', 'Rejected Taken', 'Approved Taken', 'Pending'] },
         $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
     })
     if (connectingLeaveToDate) {
@@ -236,7 +244,7 @@ leaveSchema.statics.checkConnectingToDates = async (toDate, employeeId) => {
 leaveSchema.statics.calAllTakenLeave = async (employeeId) => {
 
     let leaveConsume = await Leave.find({
-        employeeId: employeeId, leaveStatus: { $in: ['Approved', 'Taken'] },
+        employeeId: employeeId, leaveStatus: { $in: ['Approved', 'Rejected Taken', 'Approved Taken'] },
         $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
     })
 
@@ -339,11 +347,11 @@ leaveSchema.statics.calculateLeaveBalance = async (employeeCode, year) => {
     //     employeeId: employeeCode, leaveStatus: { $in: ['Approved', 'Pending', 'Taken'] },
     //     $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
     // })
-    if (!year) {
+    if (!year || year == undefined) {
         year = currentyear
     }
     let appliedLeaves = await Leave.find({
-        employeeId: employeeCode, leaveStatus: { $in: ['Approved', 'Taken'] }, fromDate: { "$lte": [{ "$year": "$fromDate" }, today] },
+        employeeId: employeeCode, leaveStatus: { $in: ['Approved', 'Rejected Taken', 'Approved Taken'] }, fromDate: { "$lte": [{ "$year": "$fromDate" }, today] },
         $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, year] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, year] } }]
     })
 
@@ -379,10 +387,14 @@ leaveSchema.statics.calculateLeaveBalance = async (employeeCode, year) => {
     }
 
     let userLeavesData = await LeaveData.findOne({ employeeId: employeeCode, year: year })
-    let UserTotalLeaves = userLeavesData.earnedLeave + userLeavesData.casualLeave
+    let userCompoff = await CompensationOff.find({
+        employeeId: employeeCode, statusCO: 'Approved',
+        $or: [{ "$expr": { "$eq": [{ "$year": "$fromDateCO" }, year] } }, { "$expr": { "$eq": [{ "$year": "$toDateCO" }, year] } }]
+    })
+    let compOffLeave = userCompoff.length
+    let UserTotalLeaves = userLeavesData.earnedLeave + userLeavesData.casualLeave + userLeavesData.compOffLeave
     totalLeaveBalance = UserTotalLeaves - totalLeave
-    return calLeaveBalance = [totalLeaveBalance, totalCalCL, totalCalEL, totalFutureLeave, userLeavesData]
-
+    return calLeaveBalance = [totalLeaveBalance, totalCalCL, totalCalEL, totalFutureLeave, userLeavesData, compOffLeave]
 }
 
 leaveSchema.statics.calculateLastYearLeaveBalance = async (employeeCode, year) => {
@@ -392,7 +404,7 @@ leaveSchema.statics.calculateLastYearLeaveBalance = async (employeeCode, year) =
     }
     var lastYear = year - 1
     let appliedLeaves = await Leave.find({
-        employeeId: employeeCode, leaveStatus: { $in: ['Approved', 'Taken'] },
+        employeeId: employeeCode, leaveStatus: { $in: ['Approved', 'Rejected Taken', 'Approved Taken'] },
         $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, lastYear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, lastYear] } }]
     })
 
