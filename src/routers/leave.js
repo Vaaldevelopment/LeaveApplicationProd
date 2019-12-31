@@ -12,7 +12,7 @@ router.get('/user/leave/list', auth, async (req, res) => {
         const leaveList = await Leave.find({
             employeeId: req.user._id,
             // $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
-        }).sort({ fromDate: -1 })
+        }).sort({ fromDate: 1 })
         for (var i = 0; i < leaveList.length; i++) {
             const calLeaveSpanArray = await Leave.checkLeaveBalance(leaveList[i].fromDate, leaveList[i].toDate, leaveList[i]._id, leaveList[i].fromSpan, leaveList[i].toSpan)
             leaveList[i].leaveCount = calLeaveSpanArray[0]
