@@ -388,11 +388,11 @@ leaveSchema.statics.calculateLeaveBalance = async (employeeCode, year) => {
 
     let userLeavesData = await LeaveData.findOne({ employeeId: employeeCode, year: year })
     let userCompoff = await CompensationOff.find({
-        employeeId: employeeCode, statusCO: 'Approved',
+        employeeId: employeeCode, statusCO: { $in: ['Approved'] },
         $or: [{ "$expr": { "$eq": [{ "$year": "$fromDateCO" }, year] } }, { "$expr": { "$eq": [{ "$year": "$toDateCO" }, year] } }]
     })
     let compOffLeave = userCompoff.length
-    let UserTotalLeaves = userLeavesData.earnedLeave + userLeavesData.casualLeave + userLeavesData.compOffLeave
+    let UserTotalLeaves = userLeavesData.earnedLeave + userLeavesData.casualLeave + compOffLeave
     totalLeaveBalance = UserTotalLeaves - totalLeave
     return calLeaveBalance = [totalLeaveBalance, totalCalCL, totalCalEL, totalFutureLeave, userLeavesData, compOffLeave]
 }

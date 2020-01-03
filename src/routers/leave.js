@@ -25,6 +25,44 @@ router.get('/user/leave/list', auth, async (req, res) => {
     }
 })
 
+// router.get('/user/pendingaction/list', auth, async (req, res) => {
+//     try {
+//         const repotingEmpList = await User.find({ managerEmployeeCode: req.user._id })
+
+//         const pendingAction = await Leave.aggregate([{
+//             $lookup: {
+//                 from: 'users',
+//                 let: { userId: '$_id', status: '$leaveStatus' },
+//                 pipeline: [
+//                     {
+//                         $match:
+//                         {
+//                             $expr:
+//                             {
+//                                 $and:
+//                                     [ 
+//                                         { $eq: ['$managerEmployeeCode', '$$userId'] },
+//                                         { $eq: [ '$status', 'pending' ] }
+//                                     ]
+//                             }
+//                         }
+//                     }
+//                 ],
+//                 localField: "_id",
+//                 foreignField: "employeeId",
+//                 as: "leaveData"
+//             }
+//         }]).exec(function (err, leave) {
+//              console.log(leave)
+//         })
+//          console.log('pendingAction ' + pendingAction)
+//         //res.status(200).send({ 'pendingActionList': pendingActionList})
+//     } catch (e) {
+//         res.status(400).send(e.message)
+//     }
+// })
+
+
 router.post('/user/leave/checkLeaveSpan', auth, async (req, res) => {
 
     try {
