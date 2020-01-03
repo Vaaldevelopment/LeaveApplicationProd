@@ -295,7 +295,7 @@ leaveSchema.statics.calLeaveSpan = async (fromDate, toDate, calLeaveFromSpan, ca
     calLeaveFromSpan = null
     calLeaveToSpan = null
 
-    if (leaveSpan > 7) { //Sandwich Leave
+    if (leaveSpan >= 7) { //Sandwich Leave
 
         leaveSpan = leaveSpan + nWeekends
     }
