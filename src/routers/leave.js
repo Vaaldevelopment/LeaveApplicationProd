@@ -129,10 +129,6 @@ router.post('/user/leave/apply', auth, async (req, res) => {
         const userData = await User.findOne({ _id: req.user._id })
         const leaveAppData = new Leave(req.body)
         leaveAppData.leavePlanned = true
-        // if (new Date(req.body.fromDate) < new Date() && new Date(req.body.toDate) < new Date()) {
-        //     leaveAppData.leaveStatus = 'Taken'
-        //     leaveAppData.leavePlanned = false
-        // }
         leaveAppData.leaveType = 'EL'
         leaveAppData.employeeId = req.user._id
         leaveAppData.leaveCount = undefined
@@ -216,6 +212,9 @@ router.get('/user/leave/cancel', auth, async (req, res) => {
             throw new Error('Leave Id is missing')
         }
         const selectedLeaveData = await Leave.findOne({ _id: req.query.leaveId })
+        if(selectedLeaveData.leaveStatus == 'Rejected Taken' || selectedLeaveData.leaveStatus == 'Approved Taken'){
+            throw new Error(`Can not cancel taken leave`)
+        }
         selectedLeaveData.leaveStatus = 'Cancelled'
         await selectedLeaveData.save()
         res.status(200).send({ 'cancelledStatus': selectedLeaveData })
