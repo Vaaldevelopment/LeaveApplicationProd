@@ -25,42 +25,23 @@ router.get('/user/leave/list', auth, async (req, res) => {
     }
 })
 
-// router.get('/user/pendingaction/list', auth, async (req, res) => {
-//     try {
-//         const repotingEmpList = await User.find({ managerEmployeeCode: req.user._id })
+router.get('/user/pendingaction/list', auth, async (req, res) => {
 
-//         const pendingAction = await Leave.aggregate([{
-//             $lookup: {
-//                 from: 'users',
-//                 let: { userId: '$_id', status: '$leaveStatus' },
-//                 pipeline: [
-//                     {
-//                         $match:
-//                         {
-//                             $expr:
-//                             {
-//                                 $and:
-//                                     [ 
-//                                         { $eq: ['$managerEmployeeCode', '$$userId'] },
-//                                         { $eq: [ '$status', 'pending' ] }
-//                                     ]
-//                             }
-//                         }
-//                     }
-//                 ],
-//                 localField: "_id",
-//                 foreignField: "employeeId",
-//                 as: "leaveData"
-//             }
-//         }]).exec(function (err, leave) {
-//              console.log(leave)
-//         })
-//          console.log('pendingAction ' + pendingAction)
-//         //res.status(200).send({ 'pendingActionList': pendingActionList})
-//     } catch (e) {
-//         res.status(400).send(e.message)
-//     }
-// })
+    try {
+        const reportingEmpList = await User.find({ managerEmployeeCode: req.user._id })
+        var pendingAction = []
+        for (let i = 0; i < reportingEmpList.length; i++) {
+            let pendingData = await Leave.find({ employeeId: reportingEmpList[i]._id, leaveStatus: 'Pending' })
+            pendingData.forEach(leave => {
+                pendingAction.push(leave)
+            });
+            pendingAction.sort((a, b) => (new Date(a.fromDate) > new Date(b.fromDate)) ? 1 : -1)
+        }
+        res.status(200).send({ 'pendingActionList': pendingAction, 'reportingEmpList': reportingEmpList })
+    } catch (e) {
+        res.status(400).send(e.message)
+    }
+})
 
 
 router.post('/user/leave/checkLeaveSpan', auth, async (req, res) => {
@@ -212,7 +193,7 @@ router.get('/user/leave/cancel', auth, async (req, res) => {
             throw new Error('Leave Id is missing')
         }
         const selectedLeaveData = await Leave.findOne({ _id: req.query.leaveId })
-        if(selectedLeaveData.leaveStatus == 'Rejected Taken' || selectedLeaveData.leaveStatus == 'Approved Taken'){
+        if (selectedLeaveData.leaveStatus == 'Rejected Taken' || selectedLeaveData.leaveStatus == 'Approved Taken') {
             throw new Error(`Can not cancel taken leave`)
         }
         selectedLeaveData.leaveStatus = 'Cancelled'
