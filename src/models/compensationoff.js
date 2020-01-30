@@ -68,7 +68,6 @@ compensationOffSchema.statics.checkCompOffDates = async (reqData, userId) => {
         throw new Error('Can not applied for different year')
     }
 
-
     let filterArray = compOffList.filter(m =>
         new Date(m.fromDateCO).getTime() <= checkFromDate && new Date(m.toDateCO).getTime() >= checkFromDate)
     if (filterArray.length > 0) {
