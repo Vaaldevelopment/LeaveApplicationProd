@@ -79,6 +79,16 @@ compensationOffSchema.statics.checkCompOffDates = async (reqData, userId) => {
     if (filterArray.length > 0) {
         throw new Error('Already applied for this date')
     }
+    if (reqData.fromSpanCO && reqData.toSpanCO && (new Date(reqData.fromDateCO).getTime() == new Date(reqData.toDateCO).getTime())) {
+        if (reqData.fromSpanCO !== reqData.toSpanCO) {
+            throw new Error('Can not apply, Comp Off span should be same for single date');
+
+        }
+    } else {
+        if ((reqData.fromSpanCO == "FIRST HALF" && reqData.toSpanCO == "FULL DAY") || (reqData.fromSpanCO == "FIRST HALF" && reqData.toSpanCO == "FIRST HALF") || (reqData.fromSpanCO == "FIRST HALF" && reqData.toSpanCO == "SECOND HALF") || (reqData.fromSpanCO == "SECOND HALF" && reqData.toSpanCO == "SECOND HALF")) {
+            throw new Error('Can not apply, Comp Off can not be merged for selected span ');
+        }
+    }
 }
 
 compensationOffSchema.statics.applyCompOff = async (reqData, userId) => {
