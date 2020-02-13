@@ -23,22 +23,23 @@ router.get('/manager/user/list', auth, async (req, res) => {
 router.get('/manager/user/reclist',auth, async (req, res) => {
     try {
         const countManager = await User.countDocuments({ managerEmployeeCode: req.user._id })
-        // if (countManager == 0) {
-        //     throw new Error('User is not manager')
-        // }
-        // const descendants = []
-        // const stack = [];
-        // const item = await User.findOne({ _id: req.user._id })
-        // stack.push(item)
+        if (countManager == 0) {
+            throw new Error('User is not manager')
+        }
+        const descendants = []
+        const stack = [];
+        const item = await User.findOne({ _id: req.user._id })
+        stack.push(item)
 
-        // while (stack.length > 0) {
-        //     var currentnode = stack.pop()
-        //     var children = await User.find({ managerEmployeeCode: { $in: currentnode._id } })
-        //     children.forEach(child => {
-        //         descendants.push(child)
-        //         stack.push(child);
-        //     });
-        // }
+        while (stack.length > 0) {
+            var currentnode = stack.pop()
+            var children = await User.find({ managerEmployeeCode: { $in: currentnode._id } })
+            children.forEach(child => {
+                descendants.push(child)
+                stack.push(child);
+                console.log('stack length' + stack.length)
+            });
+        }
 
         res.status(200).send({ 'recEmpList': countManager })
 
