@@ -20,7 +20,7 @@ router.get('/manager/user/list', auth, async (req, res) => {
     }
 })
 
-router.get('/manager/user/reclist', cors(),auth, async (req, res) => {
+router.get('/manager/user/reclist',auth, async (req, res) => {
     try {
         const countManager = await User.countDocuments({ managerEmployeeCode: req.user._id })
         if (countManager == 0) {
