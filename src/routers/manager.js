@@ -41,7 +41,7 @@ router.get('/manager/user/reclist',auth, async (req, res) => {
             });
         }
 
-        res.status(200).send({ 'recEmpList': countManager })
+        res.status(200).send({ 'recEmpList': descendants })
 
     } catch (e) {
         res.status(400).send({ error: e.message })
