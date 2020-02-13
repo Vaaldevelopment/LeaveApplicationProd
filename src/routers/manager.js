@@ -37,7 +37,6 @@ router.get('/manager/user/reclist',auth, async (req, res) => {
             children.forEach(child => {
                 descendants.push(child)
                 stack.push(child);
-                console.log('stack length' + stack.length)
             });
         }
 
