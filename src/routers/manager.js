@@ -21,6 +21,7 @@ router.get('/manager/user/list', auth, async (req, res) => {
 
 router.get('/manager/user/reclist', auth, async (req, res) => {
     try {
+        //Added new
         const allReportsList = await User.getAllReports(req.user._id)
         res.status(200).send({ 'recEmpList': allReportsList })
 
