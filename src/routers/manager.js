@@ -5,7 +5,6 @@ const auth = require('../middleware/auth')
 const Notification = require('../models/notification')
 const router = new express.Router()
 const currentyear = new Date().getFullYear()
-var cors = require('cors');
 
 router.get('/manager/user/list', auth, async (req, res) => {
     try {
@@ -20,9 +19,8 @@ router.get('/manager/user/list', auth, async (req, res) => {
     }
 })
 
-router.get('/manager/user/reclist',auth, async (req, res) => {
+router.get('/manager/user/reclist', auth, async (req, res) => {
     try {
-        //Added new
         const allReportsList = await User.getAllReports(req.user._id)
         res.status(200).send({ 'recEmpList': allReportsList })
 
