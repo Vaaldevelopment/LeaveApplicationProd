@@ -26,7 +26,7 @@ var cors = require('cors');
 
 app.use(function (req, res, next) {
    res.header("Access-Control-Allow-Origin", "*");
-   res.header('Access-Control-Allow-Methods', 'DELETE, PUT,POST,GET');
+   res.header('Access-Control-Allow-Methods', 'DELETE,PUT,POST,GET,OPTIONS');
    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
    next();
 });
@@ -50,7 +50,7 @@ app.use(express.static(path.join(__dirname, '../dist')));
 // Send all other requests to the Angular app
 // app.get('*', (req, res) => {
 //     res.sendFile(path.join(__dirname, 'index.html'));
-//     //res.sendFile(path.join(__dirname, 'dist/index.html'));
+//res.sendFile(path.join(__dirname, '../dist/index.html'));
 // });
 
 //Set Port
@@ -73,7 +73,6 @@ app.use(notificationRouter)
 app.use(leaveDataRouter)
 app.use(CompensationOffRouter)
 app.use(emailDataRouter)
-
 module.exports = app
 
 //ToDo - All responses should be in standard format {error: error, data: data}

@@ -47,24 +47,24 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         content: {
             from: 'webdeveloper@vaal-triangle.com',
             subject: emailSubject,
-            html: '<html><body>' + htmlContent + '</body></html>'
-            // headers: {
-            //     CC: "hr@vaal-triangle.com"
-            //   },
+            html: '<html><body>' + htmlContent + '</body></html>',
+            headers: {
+                CC: "hr@vaal-triangle.com"
+              }
         },
         recipients: [
-            // console.log('empDetails.email ' + empDetails.email)
-            //{ address: empManager.email },
-             { address: empDetails.email },
+            { address: empManager.email },
+            { address: empDetails.email },
             {
                 address: {
                     "email": "hr@vaal-triangle.com",
-                    "header_to": empManager[0].email
+                    "header_to": empManager.email
                   }
               }
         ]
     })
         .then(data => {
+            console.log(data)
             const addEmailDetails = new EmailData()
             if (empManager._id == loginUser) {
                 addEmailDetails.fromId = empManager._id;
@@ -79,6 +79,7 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
             addEmailDetails.emailBody = htmlContent
             addEmailDetails.sendStatus = true
             addEmailDetails.save()
+            console.log('EmailData Save');
             // console.log(data);
             // console.log(empManager.email);
             // console.log(empDetails.email);
