@@ -55,13 +55,13 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         recipients: [
             // console.log('empDetails.email ' + empDetails.email)
             //{ address: empManager.email },
-             { address: empDetails.email },
-            {
-                address: {
-                    "email": "hr@vaal-triangle.com",
-                    "header_to": empManager[0].email
-                  }
-              }
+             { address: empDetails.email }
+            // {
+            //     address: {
+            //         "email": "hr@vaal-triangle.com",
+            //         "header_to": empManager[0].email
+            //       }
+            //   }
         ]
     })
         .then(data => {
