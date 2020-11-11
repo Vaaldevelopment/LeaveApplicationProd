@@ -54,7 +54,7 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         },
         recipients: [
             // console.log('empDetails.email ' + empDetails.email)
-            //{ address: empManager.email },
+            //{ address: "sonukonge2010@gmail.com" }
              { address: empDetails.email },
             {
                 address: {
@@ -65,6 +65,7 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         ]
     })
         .then(data => {
+            console.log(data);
             const addEmailDetails = new EmailData()
             if (empManager._id == loginUser) {
                 addEmailDetails.fromId = empManager._id;
