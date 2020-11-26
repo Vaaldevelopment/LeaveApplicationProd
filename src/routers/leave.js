@@ -280,7 +280,7 @@ router.get('/user/leave/allEmpLeaveRep', auth, async (req, res) => {
         // console.log('selectedToDate ' + selectedToDate)
         // const allEmpLeaveList = await Leave.find({
         //     $and: [{ $gte: [ "$fromDate", new Date(req.query.fromDate) ] }, { $lte: [ "$toDate", new Date(req.query.toDate) ] }]})
-        const allEmpLeaveList = await Leave.find({createdAt: { $gte: new Date(req.query.fromDate)}}).sort({ fromDate: 1 })
+        const allEmpLeaveList = await Leave.find({ createdAt: { $gte: new Date(req.query.fromDate) } }).sort({ fromDate: 1 })
         //console.log('allEmpLeaveList ' + allEmpLeaveList)
 
         res.status(200).send({ 'leaveDates': allEmpLeaveList })
