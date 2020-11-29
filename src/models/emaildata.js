@@ -41,11 +41,21 @@ const emailDataSchema = new mongoose.Schema({
 
 
 emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails, empManager, leaveDetails, loginUser) => {
-    console.log(empManager.email)
-    const transporter = nodemailer.createTransport({
-        host: 'mailrelay.sigmatek.net',
-        port: 25,
-        secure: false
+
+    // const transporter = nodemailer.createTransport({
+    //     host: 'mailrelay.sigmatek.net',
+    //     port: 25,
+    //     secure: false
+    // });
+
+     const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true, // use SSL
+        auth: {
+            user: 'vess.vaaltriangle@gmail.com',
+            pass: 'vesssmtp@2020'
+        }
     });
 
     // send email
@@ -53,11 +63,11 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         from: 'webdeveloper@vaal-triangle.com',
         to: empDetails.email + ',' + empManager.email,
         cc: 'hr@vaal-triangle.com',
+        //to: 'sonali.konge@vaal-triangle.com',
+        //to: 'internalinfo@sigmanest.com',
         subject: emailSubject,
         html: '<html><body>' + htmlContent + '</body></html>'
-
     });
-    console.log(info)
     if (info.messageId) {
         const addEmailDetails = new EmailData()
         if (empManager._id == loginUser) {
@@ -72,10 +82,8 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         addEmailDetails.emailBody = htmlContent
         addEmailDetails.sendStatus = true
         addEmailDetails.save()
-        // console.log(data);
-        // console.log(empManager.email);
-        // console.log(empDetails.email);
     }
+    
     console.log("Message sent: %s", info);
     // client.transmissions.send({
     //     // options: {
