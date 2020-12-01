@@ -145,19 +145,21 @@ router.post('/send/manager/compoffemail', auth, async (req, res) => {
 })
 
 function formateDate(date) {
+    console.log(date)
     // console.log('date ' + date)
     // const monthNames = ["January", "February", "March", "April", "May", "June",
     //     "July", "August", "September", "October", "November", "December"];
     // const weekDaysNames = ["Sun", "Mon", "Tues", "Wed", "Thur", "Fri", "Sat"];
     let dateObj = new Date(date);
     // let month = monthNames[dateObj.getMonth()];
-    let month = String(dateObj.getMonth()).padStart(2, '0');
+    let month = dateObj.getMonth();
+    month = month + 1;
+    month = String(month).padStart(2, '0')
     let day = String(dateObj.getDate()).padStart(2, '0');
     let year = dateObj.getFullYear();
     //let weekDays = weekDaysNames[dateObj.getDay()];
     //let output = weekDays + ' ' + month + ' ' + day + ', ' + year;
     let output = day + '-' + month + '-' + year;
-    // console.log('output ' + output)
     return output;
 }
 module.exports = router
