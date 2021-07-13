@@ -48,16 +48,24 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
     //     secure: false
     // });
 
-     const transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true, // use SSL
+    //  const transporter = nodemailer.createTransport({
+    //     host: 'smtp.gmail.com',
+    //     port: 465,
+    //     secure: true, // use SSL
+    //     auth: {
+    //         user: 'vess.vaaltriangle@gmail.com',
+    //         pass: 'vesssmtp@2020'
+    //     }
+    // });
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
         auth: {
             user: 'vess.vaaltriangle@gmail.com',
-            pass: 'vesssmtp@2020'
+            pass: 'leaveApplication#2021'
         }
-    });
-
+      });
+      
     // send email
     let info = await transporter.sendMail({
         from: 'webdeveloper@vaal-triangle.com',
