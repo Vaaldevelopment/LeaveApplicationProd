@@ -54,7 +54,7 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
     //     secure: true, // use SSL
     //     auth: {
     //         user: 'vess.vaaltriangle@gmail.com',
-    //         pass: 'vesssmtp@2020'
+    //         pass: 'leaveApplication#2021'
     //     }
     // });
 
@@ -65,17 +65,31 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
             pass: 'leaveApplication#2021'
         }
       });
-      
+
     // send email
     let info = await transporter.sendMail({
         from: 'webdeveloper@vaal-triangle.com',
-        to: empDetails.email + ',' + empManager.email,
-        cc: 'hr@vaal-triangle.com',
-        //to: 'sonali.konge@vaal-triangle.com',
+        //to: empDetails.email + ',' + empManager.email,
+        //cc: 'hr@vaal-triangle.com',
+        to: 'sonali.konge@vaal-triangle.com',
         //to: 'internalinfo@sigmanest.com',
         subject: emailSubject,
         html: '<html><body>' + htmlContent + '</body></html>'
     });
+
+   
+
+    // send email
+    // let info = await transporter.sendMail({
+    //     from: 'webdeveloper@vaal-triangle.com',
+    //     //to: empDetails.email + ',' + empManager.email,
+    //     //cc: 'hr@vaal-triangle.com',
+    //     to: 'sonali.konge@vaal-triangle.com',
+    //     subject: emailSubject,
+    //     html: '<html><body>' + htmlContent + '</body></html>'
+
+    // });
+ 
     if (info.messageId) {
         const addEmailDetails = new EmailData()
         if (empManager._id == loginUser) {
@@ -92,7 +106,7 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         addEmailDetails.save()
     }
     
-    console.log("Message sent: %s", info);
+    //console.log("Message sent: %s", info);
     // client.transmissions.send({
     //     // options: {
     //     //   sandbox: true
