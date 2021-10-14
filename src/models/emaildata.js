@@ -69,9 +69,9 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
     // send email
     let info = await transporter.sendMail({
         from: 'webdeveloper@vaal-triangle.com',
-        //to: empDetails.email + ',' + empManager.email,
-        //cc: 'hr@vaal-triangle.com',
-        to: 'sonali.konge@vaal-triangle.com',
+        to: empDetails.email + ',' + empManager.email,
+        cc: 'hr@vaal-triangle.com',
+        //to: 'sonali.konge@vaal-triangle.com',
         //to: 'internalinfo@sigmanest.com',
         subject: emailSubject,
         html: '<html><body>' + htmlContent + '</body></html>'
