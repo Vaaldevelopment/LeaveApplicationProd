@@ -6,13 +6,12 @@ const Holiday = require('../models/holiday')
 const Notification = require('../models/notification')
 const router = new express.Router()
 const currentyear = new Date().getFullYear()
-var timeout = require('connect-timeout')
 
-router.get('/user/leave/list', timeout('28s'), haltOnTimedout, auth, async (req, res) => {
+router.get('/user/leave/list', auth, async (req, res) => {
     try {
         const leaveList = await Leave.find({
             employeeId: req.user._id,
-            // $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
+            $or: [{ "$expr": { "$eq": [{ "$year": "$fromDate" }, currentyear] } }, { "$expr": { "$eq": [{ "$year": "$toDate" }, currentyear] } }]
         }).sort({ fromDate: -1 })
 
         for (var i = 0; i < leaveList.length; i++) {
@@ -290,7 +289,5 @@ router.get('/user/leave/allEmpLeaveRep', auth, async (req, res) => {
     }
 })
 
-function haltOnTimedout (req, res, next) {
-    if (!req.timedout) next()
-  }
+
 module.exports = router
