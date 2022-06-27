@@ -48,13 +48,13 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
     //     secure: false
     // });
 
-    //  const transporter = nodemailer.createTransport({
+    // const transporter = nodemailer.createTransport({
     //     host: 'smtp.gmail.com',
     //     port: 465,
     //     secure: true, // use SSL
     //     auth: {
     //         user: 'vess.vaaltriangle@gmail.com',
-    //         pass: 'leaveApplication#2021'
+    //         pass: 'njirrdcujqkgodcg'
     //     }
     // });
 
@@ -62,9 +62,9 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         service: 'gmail',
         auth: {
             user: 'vess.vaaltriangle@gmail.com',
-            pass: 'leaveApplication#2021'
+            pass: 'njirrdcujqkgodcg'
         }
-      });
+    });
 
     // send email
     let info = await transporter.sendMail({
@@ -77,7 +77,7 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         html: '<html><body>' + htmlContent + '</body></html>'
     });
 
-   
+
 
     // send email
     // let info = await transporter.sendMail({
@@ -89,7 +89,7 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
     //     html: '<html><body>' + htmlContent + '</body></html>'
 
     // });
- 
+
     if (info.messageId) {
         const addEmailDetails = new EmailData()
         if (empManager._id == loginUser) {
@@ -105,7 +105,7 @@ emailDataSchema.statics.sentEmail = async (emailSubject, htmlContent, empDetails
         addEmailDetails.sendStatus = true
         addEmailDetails.save()
     }
-    
+
     //console.log("Message sent: %s", info);
     // client.transmissions.send({
     //     // options: {
