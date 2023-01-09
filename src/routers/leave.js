@@ -8,12 +8,13 @@ const router = new express.Router()
 const currentyear = new Date().getFullYear()
 const previousYear = currentyear - 1
 const nextYear = currentyear + 1
-const sepLastYear = 'September 1, ' + previousYear + ' 00:00:00'
+const LastYear = 'January 1, ' + previousYear + ' 00:00:00'
 const marNextYear = 'March 31, ' + nextYear + ' 00:00:00'
-const lastYearDate = new Date(sepLastYear).getTime()
-// console.log('lastYearDate '+ sepLastYear)
-const nextYearDate = new Date(marNextYear.toString())
-// console.log('lastYearDate '+ nextYearDate)
+const lastYearDate = new Date(LastYear).getTime()
+//console.log('lastYearDate '+ lastYearDate)
+//const nextYearDate = new Date(marNextYear.toString())
+const nextYearDate = new Date(marNextYear).getTime()
+//console.log('lastYearDate '+ nextYearDate)
 
 router.get('/user/leave/list', auth, async (req, res) => {
     try {
